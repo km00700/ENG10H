@@ -21,6 +21,5 @@ end
 
 
 disp(current_point);
-disp(z);
 disp(gradient);
 disp(iterations);
