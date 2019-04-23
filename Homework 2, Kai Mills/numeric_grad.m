@@ -1,3 +1,5 @@
+%Uses small perturbations in the coordinate of v to approximate the
+%gradient of the function z2 at point v
 function f = numeric_grad(v, delta) 
     f = [0 0];
     dxi = [delta 0];

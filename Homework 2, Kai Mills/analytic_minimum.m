@@ -1,3 +1,8 @@
+%{
+    NOTE: This implementation will get stuck at local minima! 
+    This could be avoided by testing at multiple points and comparing the
+    results, at the expense of time.
+%}
 alpha = 0.000002;
 stopping_value = 0.1;
 prev_point = [300, 50];
@@ -11,6 +16,8 @@ Z = (0.04*X.^4)-(5*X.^2.*Y)+(0.01*Y.^4)-(0.3*X.^3.*Y)+(0.005*Y.^6)-(X.^3);
 surf(X,Y,Z,'EdgeColor','None');
 hold on;
 
+%Iterates until the gradient is closer to zero than the stopping value and
+%steps down the gradient by alpha units using analytic descent.
 while (norm(gradient) > stopping_value)
     iterations = iterations + 1;
     gradient = analytic_grad(current_point);
