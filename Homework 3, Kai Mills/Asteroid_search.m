@@ -12,6 +12,6 @@ for(i = 1:ceil(course_depth/maximum_movement_distance))
    path = [path; route(2:maximum_movement_distance + 1,:)];
    starting_position = route(maximum_movement_distance + 1,:);
 end
-
-disp(path(1:21,:));
-animate_system(path(1:21,:), asteroid_field);
+path = path(1: course_depth + 1, :);
+disp(path);
+animate_system(path, asteroid_field);
