@@ -1,1 +1,1 @@
-test
+function [x y]=slalom(vx0,vx)
