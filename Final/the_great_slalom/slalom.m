@@ -11,8 +11,8 @@ function [x, y]=slalom(vx0, vx, x0, y0)
     yinitial=[y0; vy0];
     [t,X]=ode23(@xvelocity, tspan, xinitial);
     [t,Y]=ode23(@yvelocity, tspan, yinitial);
-    x=X(:,1);
-    y=Y(:,1);
+    x=X;
+    y=Y;
     function xdot=xvelocity(t, VX)
         xdot=[VX(2,1); ax];
     end
