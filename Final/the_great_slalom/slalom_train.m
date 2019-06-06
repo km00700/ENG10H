@@ -1,240 +1,147 @@
 function q_table = slalom_train(flags)
-    q_table=zeros(11,3); %column 1=-vmax, 2=0, 3=vmax
+    q_table=zeros(55,3); %rows 1-5: y=0, rows 6-10: y=-1, etc
+    yfinal=-10;
     epsilon=1;
     beta=0.999;
     gamma=0.5;
     alpha=0.5;
+    rstep=-1;
     rbounds=-10;
     rgate=10;
-    vmax=2; %note: this value also appears in all three files
-    br=false; %used to break for loop for gate check
+    vmax=2;
+    br=false;
+    global ax ay
     for trials=1:1000
         x0=0;
         y0=0;
         vx0=0;
+        vy0=-(vmax^2-vx0^2)^(0.5);
         exploration=rand;
         if exploration<epsilon %exploration case
-            while y0>=-10 && abs(x0)<=2.5
-                choice=randi(3); %1=-vmax, 2=0, 3=vmax
-                if choice==1 %vx=-vmax
+            while y0>=yfinal && abs(x0)<=2.5
+                choice=randi(3);
+                if choice==1
                     vx=-vmax;
-                    [x, y]=slalom(vx0, vx, x0, y0);
-                    if abs(x(11,1))>2.5 %assigning rewards
-                        q_table(abs(round(y0))+1,1)=(1-alpha)*q_table(abs(round(y0))+1,1)+alpha*rbounds;
-                    else
-                        for i=1:length(flags)
-                            for j=1:11
-                                if (flags(i,1)-0.5)<x(j,1) && x(j,1)<(flags(i,1)+0.5)
-                                    if (flags(i,2)-0.5)<y(j,1) && y(j,1)<(flags(i,2)+0.5)
-                                        yval=y(11,1);
-                                        if yval<-10
-                                            yval=-10;
-                                        end
-                                        q_table(abs(round(y0))+1,1)=(1-alpha)*q_table(abs(round(y0))+1,1)+alpha*(rgate+gamma*max(q_table(abs(round(yval))+1,:)));
-                                        br=true;
-                                        break
-                                    end
-                                end
-                            end
-                            if br==true
-                                break;
-                            end
-                        end
-                        if br==false
-                            yval=y(11,1);
-                            if yval<-10
-                                yval=-10;
-                            end
-                            q_table(abs(round(y0))+1,1)=(1-alpha)*q_table(abs(round(y0))+1,1)+alpha*(gamma*max(q_table(abs(round(yval))+1,:)));
-                        elseif br==true
-                            br=false;
-                        end
-                    end
-                elseif choice==2 %vx=0
+                elseif choice==2
                     vx=0;
-                    [x, y]=slalom(vx0, vx, x0, y0);
-                    if abs(x(11,1))>2.5 %assigning rewards
-                        q_table(abs(round(y0))+1,2)=(1-alpha)*q_table(abs(round(y0))+1,2)+alpha*rbounds;
-                    else
-                        for i=1:length(flags)
-                            for j=1:11
-                                if (flags(i,1)-0.5)<x(j,1) && x(j,1)<(flags(i,1)+0.5)
-                                    if (flags(i,2)-0.5)<y(j,1) && y(j,1)<(flags(i,2)+0.5)
-                                        yval=y(11,1);
-                                        if yval<-10
-                                            yval=-10;
-                                        end
-                                        q_table(abs(round(y0))+1,2)=(1-alpha)*q_table(abs(round(y0))+1,2)+alpha*(rgate+gamma*max(q_table(abs(round(yval))+1,:)));
-                                        br=true;
-                                        break
+                elseif choice==3
+                    vx=vmax;
+                end
+                vy=-((vmax^2-vx^2)^(0.5));
+                ax=vx-vx0;
+                ay=vy-vy0;
+                initial=[x0;vx0;y0;vy0];
+                tspan=[0:0.1:1];
+                [t, vals]=ode23(@slalom, tspan, initial);
+                x=vals(:,1);
+                vx=vals(:,2);       
+                y=vals(:,3);
+                index=(round(x0)+3)-5*round(y0);
+                if abs(x(11,1))>2.5 %assigning rewards
+                    q_table(index,choice)=(1-alpha)*q_table(index,choice)+alpha*rbounds;
+                else
+                    for i=1:length(flags)
+                        for j=1:11
+                            if (flags(i,1)-0.5)<x(j,1) && x(j,1)<(flags(i,1)+0.5)
+                                if (flags(i,2)-0.5)<y(j,1) && y(j,1)<(flags(i,2)+0.5)
+                                    yval=y(11,1);
+                                    if yval<yfinal
+                                        yval=yfinal;
                                     end
+                                    xval=x(11,1);
+                                    index2=round(xval)+3-5*round(yval);
+                                    q_table(index,choice)=(1-alpha)*q_table(index,choice)+alpha*(rgate+gamma*max(q_table(index2,:)));
+                                    br=true;
+                                    break
                                 end
                             end
-                            if br==true
-                                break;
-                            end
                         end
-                        if br==false
-                            yval=y(11,1);
-                            if yval<-10
-                                yval=-10;
-                            end
-                            q_table(abs(round(y0))+1,2)=(1-alpha)*q_table(abs(round(y0))+1,2)+alpha*(gamma*max(q_table(abs(round(yval))+1,:)));
-                        elseif br==true
-                            br=false;
+                        if br==true
+                            break;
                         end
                     end
-                elseif choice==3 %vx=vmax
-                    vx=vmax;
-                    [x, y]=slalom(vx0, vx, x0, y0);
-                    if abs(x(11,1))>2.5 %assigning rewards
-                        q_table(abs(round(y0))+1,3)=(1-alpha)*q_table(abs(round(y0))+1,3)+alpha*rbounds;
-                    else
-                        for i=1:length(flags)
-                            for j=1:11
-                                if (flags(i,1)-0.5)<x(j,1) && x(j,1)<(flags(i,1)+0.5)
-                                    if (flags(i,2)-0.5)<y(j,1) && y(j,1)<(flags(i,2)+0.5)
-                                        yval=y(11,1);
-                                        if yval<-10
-                                            yval=-10;
-                                        end
-                                        q_table(abs(round(y0))+1,3)=(1-alpha)*q_table(abs(round(y0))+1,3)+alpha*(rgate+gamma*max(q_table(abs(round(yval))+1,:)));
-                                        br=true;
-                                        break
-                                    end
-                                end
-                            end
-                            if br==true
-                                break;
-                            end
+                    if br==false
+                        yval=y(11,1)
+                        if yval<yfinal 
+                            yval=yfinal;
                         end
-                        if br==false
-                            yval=y(11,1);
-                            if yval<-10
-                                yval=-10;
-                            end
-                            q_table(abs(round(y0))+1,3)=(1-alpha)*q_table(abs(round(y0))+1,3)+alpha*(gamma*max(q_table(abs(round(yval))+1,:)));
-                        elseif br==true
-                            br=false;
-                        end
+                        xval=x(11,1)
+                        index2=round(xval)+3-5*round(yval)
+                        q_table(index,choice)=(1-alpha)*q_table(index,choice)+alpha*(rstep+gamma*max(q_table(index2,:)));
+                    elseif br==true
+                        br=false;
                     end
                 end
-                vx0=vx; %update vx0, x0, and y0
+                vx0=vx;
                 x0=x(11,1);
                 y0=y(11,1);
             end
-        elseif exploration>epsilon %q table case
-            while y0>=-10 && abs(x0)<=2.5
-                choice=max(q_table(abs(round(y0))+1,:)); 
-                if choice==q_table(abs(round(y0))+1,1) %vx=-vmax
+        elseif exploration>epsilon
+            while y0>=yfinal && abs(x0)<=2.5
+                index=(round(x0)+3)-5*round(y0);
+                choice=max(q_table(index, :));
+                if choice==q_table(index,1)
+                    choice=1;
                     vx=-vmax;
-                    [x, y]=slalom(vx0, vx, x0, y0);
-                    if abs(x(11,1))>2.5 %assigning rewards
-                        q_table(abs(round(y0))+1,1)=(1-alpha)*q_table(abs(round(y0))+1,1)+alpha*rbounds;
-                    else
-                        for i=1:length(flags)
-                            for j=1:11
-                                if (flags(i,1)-0.5)<x(j,1) && x(j,1)<(flags(i,1)+0.5)
-                                    if (flags(i,2)-0.5)<y(j,1) && y(j,1)<(flags(i,2)+0.5)
-                                        yval=y(11,1);
-                                        if yval<-10
-                                            yval=-10;
-                                        end
-                                        q_table(abs(round(y0))+1,1)=(1-alpha)*q_table(abs(round(y0))+1,1)+alpha*(rgate+gamma*max(q_table(abs(round(yval))+1,:)));
-                                        br=true;
-                                        break
-                                    end
-                                end
-                            end
-                            if br==true
-                                break;
-                            end
-                        end
-                        if br==false
-                            yval=y(11,1);
-                            if yval<-10
-                                yval=-10;
-                            end
-                            q_table(abs(round(y0))+1,1)=(1-alpha)*q_table(abs(round(y0))+1,1)+alpha*(gamma*max(q_table(abs(round(yval))+1,:)));
-                        elseif br==true
-                            br=false;
-                        end
-                    end
-                elseif choice==q_table(abs(round(y0))+1,2) %vx=0
+                elseif choice==q_table(index,2)
+                    choice=2;
                     vx=0;
-                    [x, y]=slalom(vx0, vx, x0, y0);
-                    if abs(x(11,1))>2.5 %assigning rewards
-                        q_table(abs(round(y0))+1,2)=(1-alpha)*q_table(abs(round(y0))+1,2)+alpha*rbounds;
-                    else
-                        for i=1:length(flags)
-                            for j=1:11
-                                if (flags(i,1)-0.5)<x(j,1) && x(j,1)<(flags(i,1)+0.5)
-                                    if (flags(i,2)-0.5)<y(j,1) && y(j,1)<(flags(i,2)+0.5)
-                                        yval=y(11,1);
-                                        if yval<-10
-                                            yval=-10;
-                                        end
-                                        q_table(abs(round(y0))+1,2)=(1-alpha)*q_table(abs(round(y0))+1,2)+alpha*(rgate+gamma*max(q_table(abs(round(yval))+1,:)));
-                                        br=true;
-                                        break
+                elseif choice==q_table(index,3)
+                    choice=3;
+                    vx=vmax;
+                end
+                vy=-((vmax^2-vx^2)^(0.5));
+                ax=vx-vx0;
+                ay=vy-vy0;
+                initial=[x0;vx0;y0;vy0];
+                tspan=[0:0.1:1];
+                [t, vals]=ode23(@slalom, tspan, initial);
+                x=vals(:,1);
+                vx=vals(:,2);       
+                y=vals(:,3);
+                vy=vals(:,4);
+                index=(round(x0)+3)-5*round(y0);
+                if abs(x(11,1))>2.5 %assigning rewards
+                    q_table(index,choice)=(1-alpha)*q_table(index,choice)+alpha*rbounds;
+                else
+                    for i=1:length(flags)
+                        for j=1:11
+                            if (flags(i,1)-0.5)<x(j,1) && x(j,1)<(flags(i,1)+0.5)
+                                if (flags(i,2)-0.5)<y(j,1) && y(j,1)<(flags(i,2)+0.5)
+                                    yval=y(11,1);
+                                    if yval<yfinal
+                                        yval=yfinal;
                                     end
+                                    xval=x(11,1);
+                                    index2=round(xval)+3-5*round(yval);
+                                    q_table(index,choice)=(1-alpha)*q_table(abs(index,choice)+alpha*(rgate+gamma*max(q_table(index2,:))));
+                                    br=true;
+                                    break
                                 end
                             end
-                            if br==true
-                                break;
-                            end
                         end
-                        if br==false
-                            yval=y(11,1);
-                            if yval<-10
-                                yval=-10;
-                            end
-                            q_table(abs(round(y0))+1,2)=(1-alpha)*q_table(abs(round(y0))+1,2)+alpha*(gamma*max(q_table(abs(round(yval))+1,:)));
-                        elseif br==true
-                            br=false;
+                        if br==true
+                            break;
                         end
                     end
-                elseif choice==q_table(abs(round(y0))+1,3) %vx=vmax
-                    vx=vmax;
-                    [x, y]=slalom(vx0, vx, x0, y0);
-                    if abs(x(11,1))>2.5 %assigning rewards
-                        q_table(abs(round(y0))+1,3)=(1-alpha)*q_table(abs(round(y0))+1,3)+alpha*rbounds;
-                    else
-                        for i=1:length(flags)
-                            for j=1:11
-                                if (flags(i,1)-0.5)<x(j,1) && x(j,1)<(flags(i,1)+0.5)
-                                    if (flags(i,2)-0.5)<y(j,1) && y(j,1)<(flags(i,2)+0.5)
-                                        yval=y(11,1);
-                                        if yval<-10
-                                            yval=-10;
-                                        end
-                                        q_table(abs(round(y0))+1,3)=(1-alpha)*q_table(abs(round(y0))+1,3)+alpha*(rgate+gamma*max(q_table(abs(round(yval))+1,:)));
-                                        br=true;
-                                        break
-                                    end
-                                end
-                            end
-                            if br==true
-                                break;
-                            end
+                    if br==false
+                        yval=y(11,1);
+                        if yval<yfinal 
+                            yval=yfinal;
                         end
-                        if br==false
-                            yval=y(11,1);
-                            if yval<-10
-                                yval=-10;
-                            end
-                            q_table(abs(round(y0))+1,3)=(1-alpha)*q_table(abs(round(y0))+1,3)+alpha*(gamma*max(q_table(abs(round(yval))+1,:)));
-                        elseif br==true
-                            br=false;
-                        end
+                        xval=x(11,1);
+                        index2=round(xval)+3-5*round(yval);
+                        q_table(index,choice)=(1-alpha)*q_table(index,choice)+alpha*(rstep+gamma*max(q_table(index2,:)));
+                    elseif br==true
+                        br=false;
                     end
                 end
-                vx0=vx; %update vx0, x0, and y0
+                vx0=vx;
                 x0=x(11,1);
                 y0=y(11,1);
             end
         end
         epsilon=epsilon*beta;
     end
-    save('q_table', 'q_table')
+        save('q_values', 'q_table','flags')
 end
