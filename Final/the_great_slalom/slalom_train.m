@@ -2,8 +2,8 @@ function q_table = slalom_train(flags)
     q_table=zeros(55,3); %rows 1-5: y=0, rows 6-10: y=-1, etc
     yfinal=-10;
     epsilon=1;
-    beta=0.999;
-    gamma=0.5;
+    beta=0.99;
+    gamma=0.8;
     alpha=0.5;
     rstep=-1;
     rbounds=-10;
@@ -11,7 +11,7 @@ function q_table = slalom_train(flags)
     vmax=2;
     br=false;
     global ax ay
-    for trials=1:1000
+    for trials=1:500
         x0=0;
         y0=0;
         vx0=0;
@@ -61,20 +61,21 @@ function q_table = slalom_train(flags)
                         end
                     end
                     if br==false
-                        yval=y(11,1)
+                        yval=y(11,1);
                         if yval<yfinal 
                             yval=yfinal;
                         end
-                        xval=x(11,1)
-                        index2=round(xval)+3-5*round(yval)
+                        xval=x(11,1);
+                        index2=round(xval)+3-5*round(yval);
                         q_table(index,choice)=(1-alpha)*q_table(index,choice)+alpha*(rstep+gamma*max(q_table(index2,:)));
                     elseif br==true
                         br=false;
                     end
                 end
-                vx0=vx;
+                vx0=vx(11,1);
                 x0=x(11,1);
                 y0=y(11,1);
+                vy0=-(vmax^2-vx0^2)^(0.5);
             end
         elseif exploration>epsilon
             while y0>=yfinal && abs(x0)<=2.5
@@ -114,7 +115,7 @@ function q_table = slalom_train(flags)
                                     end
                                     xval=x(11,1);
                                     index2=round(xval)+3-5*round(yval);
-                                    q_table(index,choice)=(1-alpha)*q_table(abs(index,choice)+alpha*(rgate+gamma*max(q_table(index2,:))));
+                                    q_table(index,choice)=(1-alpha)*q_table(index,choice)+alpha*(rgate+gamma*max(q_table(index2,:)));
                                     br=true;
                                     break
                                 end
@@ -136,12 +137,13 @@ function q_table = slalom_train(flags)
                         br=false;
                     end
                 end
-                vx0=vx;
+                vx0=vx(11,1);
                 x0=x(11,1);
                 y0=y(11,1);
+                vy0=-(vmax^2-vx0^2)^(0.5);
             end
         end
         epsilon=epsilon*beta;
     end
-        save('q_values', 'q_table','flags')
+    save('q_values', 'q_table','flags')
 end
