@@ -1,15 +1,14 @@
 function q_table = slalom_train(flags)
     q_table=zeros(55,3); %rows 1-5: y=0, rows 6-10: y=-1, etc
-    vmax=1; %APPEARS IN SLALOM_RUN
+    vmax=1.5; %APPEARS IN SLALOM_RUN
     yfinal=-10; %APPEARS IN SLALOM_RUN
-    step_penalty_ratio=0;
     epsilon=1;
     beta=0.99;
     gamma=0.8;
     alpha=0.5;
-    rstep=-0.85;
-    rbounds=-100;
-    rgate=100;
+    rstep=-0.475*(3/vmax); %0.95 ideal
+    rbounds=-1500;
+    rgate=250;
     br=false;
     global ax ay
     for trials=1:1000

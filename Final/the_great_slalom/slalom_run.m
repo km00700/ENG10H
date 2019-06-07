@@ -20,8 +20,9 @@ while y0>=yfinal && abs(x0)<=2.5
     elseif choice==q_table(index,3)
         vx=vmax;
     end
-    if vx0==-vmax || vx0==vmax
+    if vx==-vx0
         vx=0;
+        choice=2;
     end
     vy0=-(vmax^2-vx0^2)^(0.5);
     vy=-(vmax^2-vx^2)^(0.5);
