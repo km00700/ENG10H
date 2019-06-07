@@ -1,5 +1,5 @@
 load q_values.mat
-vmax=1.5; %APPEARS IN SLALOM_TRAIN
+vmax=1; %APPEARS IN SLALOM_TRAIN
 yfinal=-10; %APPEARS IN SLALOM_TRAIN
 x0=0;
 y0=0;
@@ -20,8 +20,14 @@ while y0>=yfinal && abs(x0)<=2.5
     elseif choice==q_table(index,3)
         vx=vmax;
     end
-    if vx0==-vmax || vx0==vmax
-        vx=0;
+    if vx0==-vmax
+        if vx==vmax
+            vx=0;
+        end
+    elseif vx0==vmax
+        if vx==-vmax
+            vx=0;
+        end
     end
     vy0=-(vmax^2-vx0^2)^(0.5);
     vy=-(vmax^2-vx^2)^(0.5);

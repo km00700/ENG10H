@@ -1,5 +1,7 @@
 function q_table = slalom_train(flags)
     q_table=zeros(55,3); %rows 1-5: y=0, rows 6-10: y=-1, etc
+    vmax=1; %APPEARS IN SLALOM_RUN
+    yfinal=-10; %APPEARS IN SLALOM_RUN
     epsilon=1;
     beta=0.99;
     gamma=0.8;
@@ -7,8 +9,6 @@ function q_table = slalom_train(flags)
     rstep=-3;
     rbounds=-100;
     rgate=100;
-    vmax=1.5; %APPEARS IN SLALOM_RUN
-    yfinal=-10; %APPEARS IN SLALOM_RUN
     br=false;
     global ax ay
     for trials=1:1000
@@ -41,9 +41,14 @@ function q_table = slalom_train(flags)
                     vx=vmax;
                 end
             end
-            if vx0==-vmax || vx0==vmax
-                vx=0;
-                choice=2;
+            if vx0==-vmax
+                if vx==vmax
+                    vx=0;
+                end
+            elseif vx0==vmax
+                if vx==-vmax
+                    vx=0;
+                end
             end
                 vy=-((vmax^2-vx^2)^(0.5));
                 ax=vx-vx0;
