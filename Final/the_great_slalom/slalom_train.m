@@ -1,4 +1,5 @@
 function q_table = slalom_train(flags)
+<<<<<<< HEAD
 
 vmax=1.65; %APPEARS IN SLALOM_RUN
 yfinal=-25; %APPEARS IN SLALOM_RUN
@@ -50,6 +51,58 @@ for trials=1:(5*abs(yfinal)^2)
             if(q_table(index, 1)==q_table(index, 2)&&q_table(index, 2)==q_table(index, 3))
                 choice=2;
                 vx=0;
+=======
+    q_table=zeros(55,3); %rows 1-5: y=0, rows 6-10: y=-1, etc
+    vmax=1; %APPEARS IN SLALOM_RUN
+    yfinal=-10; %APPEARS IN SLALOM_RUN
+    epsilon=1;
+    beta=0.99;
+    gamma=0.8;
+    alpha=0.5;
+    rstep=-3;
+    rbounds=-100;
+    rgate=100;
+    br=false;
+    global ax ay
+    for trials=1:1000
+        x0=0;
+        y0=0;
+        vx0=0;
+        vy0=-(vmax^2-vx0^2)^(0.5);
+        exploration=rand;
+        while y0>=yfinal && abs(x0)<=2.5
+            if exploration<epsilon %exploration case
+                choice=randi(3);
+                if choice==1
+                    vx=-vmax;
+                elseif choice==2
+                    vx=0;
+                elseif choice==3
+                    vx=vmax;
+                end
+             elseif exploration>epsilon %exploitation case
+                index=(round(x0)+3)-5*round(y0);
+                choice=max(q_table(index, :));
+                if choice==q_table(index,1)
+                    choice=1;
+                    vx=-vmax;
+                elseif choice==q_table(index,2)
+                    choice=2;
+                    vx=0;
+                elseif choice==q_table(index,3)
+                    choice=3;
+                    vx=vmax;
+                end
+            end
+            if vx0==-vmax
+                if vx==vmax
+                    vx=0;
+                end
+            elseif vx0==vmax
+                if vx==-vmax
+                    vx=0;
+                end
+>>>>>>> 3a5ced139bf8970718eef1e2a1f307e530563ff2
             end
         end
         if round(vx)==-round(vx0)
